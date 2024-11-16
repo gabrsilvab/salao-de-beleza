@@ -1,0 +1,257 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Salão da Leila | Agendamentos</title>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            background-color: #fde0ff;
+            font-family: 'Roboto', sans-serif;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: flex-start;
+            height: 100vh;
+            color: #333;
+        }
+
+        h1 {
+            font-size: 3rem;
+            color: #440e6e;
+            text-align: center;
+            margin-top: 20px;
+        }
+
+        .container {
+            width: 90%;
+            max-width: 900px;
+            margin-top: 40px;
+        }
+
+        .button {
+            padding: 15px 25px;
+            background-color: #440e6e;
+            color: #fff;
+            font-size: 1.2rem;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            width: 100%;
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .agendamento-card {
+            background-color: #fff;
+            padding: 20px;
+            border-radius: 5px;
+            margin-bottom: 5x;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            transition: all 0.3s ease;
+        }
+
+
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            padding-top: 60px;
+        }
+
+        .modal-content {
+            background-color: #fff;
+            padding: 40px;
+            border-radius: 10px;
+            max-width: 500px;
+            margin: 0 auto;
+        }
+
+        .modal-content input[type="datetime-local"], .modal-content input[type="text"] {
+            width: 100%;
+            padding: 15px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            font-size: 1.1rem;
+            margin-top: 15px;
+        }
+
+        .modal-content button {
+            background-color: #440e6e;
+            color: #fff;
+            padding: 15px;
+            font-size: 1.2rem;
+            border: none;
+            border-radius: 50px;
+            margin-top: 20px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            width: 100%;
+        }
+
+        .aviso-editar {
+            color: #d32f2f;
+            font-size: 1.2rem;
+            font-weight: bold;
+            margin-top: 20px;
+            text-align: center;
+        }
+
+        .aviso-editar a {
+            color: #440e6e;
+            text-decoration: none;
+        }
+    </style>
+</head>
+<body>
+
+    <h1>Meus Agendamentos</h1>
+
+    <div class="container">
+        <button class="button" id="criarAgendamentoBtn">Criar Agendamento</button>
+
+        <div id="listaAgendamentos"></div>
+    </div>
+
+    <!-- Modal para criar -->
+    <div id="modalCriar" class="modal">
+        <div class="modal-content">
+            <span class="modal-close" id="fecharModalCriar">&times;</span>
+            <h3>Criar Agendamento</h3>
+            <input type="datetime-local" id="dataHora" required>
+            <input type="text" id="descricao" placeholder="Descrição" required>
+            <button id="salvarCriacaoBtn">Criar</button>
+        </div>
+    </div>
+
+    <!-- Modal para editar -->
+    <div id="modalEditar" class="modal">
+        <div class="modal-content">
+            <span class="modal-close" id="fecharModalEditar">&times;</span>
+            <h3>Editar Agendamento</h3>
+            <input type="datetime-local" id="dataHoraEditar" required>
+            <input type="text" id="descricaoEditar" placeholder="Descrição" required>
+            <button id="salvarEdicaoBtn">Salvar</button>
+            <div id="avisoEditar" class="aviso-editar"></div>
+        </div>
+    </div>
+
+    <script>
+        const modalCriar = document.getElementById('modalCriar');
+        const modalEditar = document.getElementById('modalEditar');
+        let agendamentos = JSON.parse(localStorage.getItem('agendamentos')) || [];
+        let indiceEdicao = null;
+
+        window.onload = function() {
+            const usuarioLogado = JSON.parse(localStorage.getItem('usuarioLogado'));
+            if (usuarioLogado) {
+                exibirAgendamentos(usuarioLogado);
+                document.getElementById('criarAgendamentoBtn').addEventListener('click', () => abrirModal(modalCriar));
+                document.getElementById('salvarCriacaoBtn').addEventListener('click', () => criarAgendamento(usuarioLogado));
+                document.getElementById('salvarEdicaoBtn').addEventListener('click', () => salvarEdicao(usuarioLogado));
+            }
+        };
+
+        function exibirAgendamentos(usuario) {
+            const lista = document.getElementById('listaAgendamentos');
+            lista.innerHTML = '';
+            agendamentos.forEach((agendamento, i) => {
+                if (agendamento.emailUsuario === usuario.email) {
+                    const div = document.createElement('div');
+                    div.classList.add('agendamento-card');
+                    const dataFormatada = new Date(agendamento.dataHora).toLocaleString('pt-BR');
+                    const podeEditar = podeEditarAgendamento(agendamento.dataHora);
+
+                    div.innerHTML = `
+                        <div class="agendamento-info">
+                            <strong>${dataFormatada}</strong>
+                            <p>${agendamento.descricao}</p>
+                        </div>
+                        <div class="agendamento-actions">
+                            <button onclick="prepararEdicao(${i})" ${podeEditar ? '' : 'disabled'}>Editar</button>
+                            <button onclick="deletarAgendamento(${i})">Excluir</button>
+                        </div>
+                    `;
+                    lista.appendChild(div);
+                }
+            });
+        }
+
+        function podeEditarAgendamento(dataHora) {
+            const agora = new Date();
+            const dataAgendamento = new Date(dataHora);
+            const diferencaEmHoras = (dataAgendamento - agora) / (1000 * 60 * 60);
+            return diferencaEmHoras > 48;
+        }
+
+        function criarAgendamento(usuario) {
+            const dataHora = document.getElementById('dataHora').value;
+            const descricao = document.getElementById('descricao').value;
+            if (dataHora && descricao) {
+                const novoAgendamento = { emailUsuario: usuario.email, dataHora, descricao };
+                agendamentos.push(novoAgendamento);
+                localStorage.setItem('agendamentos', JSON.stringify(agendamentos));
+                exibirAgendamentos(usuario);
+                fecharModal(modalCriar);
+            }
+        }
+
+        function prepararEdicao(indice) {
+            const agendamento = agendamentos[indice];
+            indiceEdicao = indice;
+            document.getElementById('dataHoraEditar').value = agendamento.dataHora.slice(0, 16);
+            document.getElementById('descricaoEditar').value = agendamento.descricao;
+            if (!podeEditarAgendamento(agendamento.dataHora)) {
+                avisoEditar.innerHTML = 'Este agendamento não pode ser editado. <br> Por favor, entre em contato com o estabelecimento.';
+            } else {
+                avisoEditar.innerHTML = '';
+            }
+            abrirModal(modalEditar);
+        }
+
+        function salvarEdicao(usuario) {
+            const dataHora = document.getElementById('dataHoraEditar').value;
+            const descricao = document.getElementById('descricaoEditar').value;
+            if (dataHora && descricao && indiceEdicao !== null && podeEditarAgendamento(dataHora)) {
+                agendamentos[indiceEdicao].dataHora = dataHora;
+                agendamentos[indiceEdicao].descricao = descricao;
+                localStorage.setItem('agendamentos', JSON.stringify(agendamentos));
+                exibirAgendamentos(usuario);
+                fecharModal(modalEditar);
+            }
+        }
+
+        function deletarAgendamento(indice) {
+            agendamentos.splice(indice, 1);
+            localStorage.setItem('agendamentos', JSON.stringify(agendamentos));
+            exibirAgendamentos(JSON.parse(localStorage.getItem('usuarioLogado')));
+        }
+
+        function abrirModal(modal) {
+            modal.style.display = 'block';
+        }
+
+        function fecharModal(modal) {
+            modal.style.display = 'none';
+        }
+
+        document.getElementById('fecharModalCriar').onclick = () => fecharModal(modalCriar);
+        document.getElementById('fecharModalEditar').onclick = () => fecharModal(modalEditar);
+        window.onclick = function(event) {
+            if (event.target === modalCriar) fecharModal(modalCriar);
+            if (event.target === modalEditar) fecharModal(modalEditar);
+        };
+    </script>
+</body>
+</html>

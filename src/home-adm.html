@@ -1,0 +1,233 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Salão da Leila | Agendamentos</title>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            background-color: #f0f2f5;
+            font-family: 'Roboto', sans-serif;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: flex-start;
+            height: 100vh;
+            color: #333;
+        }
+
+        h1 {
+            font-size: 3rem;
+            color: #440e6e;
+            text-align: center;
+            margin-top: 20px;
+        }
+
+        .container {
+            width: 90%;
+            max-width: 900px;
+            margin-top: 40px;
+        }
+
+        .button {
+            padding: 15px 25px;
+            background-color: #440e6e;
+            color: #fff;
+            font-size: 1.2rem;
+            border: none;
+            border-radius: 50px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            width: 100%;
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .agendamento-card {
+            background-color: #fff;
+            padding: 20px;
+            border-radius: 12px;
+            box-shadow: 0px 10px 30px rgba(0, 0, 0, 0.1);
+            margin-bottom: 15px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            transition: all 0.3s ease;
+        }
+
+        .agendamento-info strong {
+            font-size: 1.9rem;
+        }
+
+        .agendamento-info p {
+            font-size: 1.1rem;
+            color: #666;
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            padding-top: 60px;
+        }
+
+        .modal-content {
+            background-color: #fff;
+            padding: 40px;
+            border-radius: 10px;
+            width: 90%;
+            max-width: 500px;
+            margin: 0 auto;
+        }
+
+        .modal-content input[type="datetime-local"], .modal-content input[type="text"] {
+            width: 100%;
+            padding: 15px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            font-size: 1.1rem;
+            margin-top: 15px;
+        }
+
+        .modal-content button {
+            background-color: #440e6e;
+            color: #fff;
+            padding: 15px;
+            font-size: 1.2rem;
+            border: none;
+            border-radius: 50px;
+            margin-top: 20px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            width: 100%;
+        }
+
+        .modal-close {
+            font-size: 30px;
+            color: #aaa;
+            cursor: pointer;
+            position: absolute;
+            top: 20px;
+            right: 20px;
+        }
+        .aviso-editar {
+            color: #d32f2f;
+            font-size: 1.2rem;
+            font-weight: bold;
+            margin-top: 20px;
+            text-align: center;
+        }
+
+        .aviso-editar a {
+            color: #8e24aa;
+            text-decoration: none;
+        }
+
+
+    </style>
+</head>
+<body>
+
+    <h1>Agendamentos</h1>
+
+    <div class="container">
+        <div id="listaAgendamentos"></div>
+    </div>
+
+    <!-- Modal para editar -->
+    <div id="modalEditar" class="modal">
+        <div class="modal-content">
+            <span class="modal-close" id="fecharModalEditar">&times;</span>
+            <h3>Editar Agendamento</h3>
+            <input type="datetime-local" id="dataHoraEditar" required>
+            <input type="text" id="descricaoEditar" placeholder="Descrição" required>
+            <button id="salvarEdicaoBtn">Salvar</button>
+            <div id="avisoEditar" class="aviso-editar"></div>
+        </div>
+    </div>
+
+    <script>
+        const modalEditar = document.getElementById('modalEditar');
+        let agendamentos = JSON.parse(localStorage.getItem('agendamentos')) || [];
+        let indiceEdicao = null;
+
+        window.onload = function() {
+            // Supondo que o administrador tenha um perfil logado no localStorage
+            exibirAgendamentos();
+            document.getElementById('salvarEdicaoBtn').addEventListener('click', salvarEdicao);
+        };
+
+        function exibirAgendamentos() {
+            const lista = document.getElementById('listaAgendamentos');
+            lista.innerHTML = '';
+            agendamentos.forEach((agendamento, i) => {
+                const div = document.createElement('div');
+                div.classList.add('agendamento-card');
+                const dataFormatada = new Date(agendamento.dataHora).toLocaleString('pt-BR');
+
+                div.innerHTML = `
+                    <div class="agendamento-info">
+                        <strong>${dataFormatada}</strong>
+                        <p><strong>Cliente:</strong> ${agendamento.nomeUsuario}</p>
+                        <p><strong>Serviço:</strong> ${agendamento.descricao}</p>
+                    </div>
+                    <div class="agendamento-actions">
+                        <button onclick="prepararEdicao(${i})">Editar</button>
+                        <button onclick="deletarAgendamento(${i})">Excluir</button>
+                    </div>
+                `;
+                lista.appendChild(div);
+            });
+        }
+
+        function prepararEdicao(indice) {
+            const agendamento = agendamentos[indice];
+            indiceEdicao = indice;
+            document.getElementById('dataHoraEditar').value = agendamento.dataHora.slice(0, 16);
+            document.getElementById('descricaoEditar').value = agendamento.descricao;
+            abrirModal(modalEditar);
+        }
+
+        function salvarEdicao() {
+            const dataHora = document.getElementById('dataHoraEditar').value;
+            const descricao = document.getElementById('descricaoEditar').value;
+            if (dataHora && descricao && indiceEdicao !== null) {
+                agendamentos[indiceEdicao].dataHora = dataHora;
+                agendamentos[indiceEdicao].descricao = descricao;
+                localStorage.setItem('agendamentos', JSON.stringify(agendamentos));
+                exibirAgendamentos();
+                fecharModal(modalEditar);
+            }
+        }
+
+        function deletarAgendamento(indice) {
+            if (confirm("Tem certeza que deseja excluir este agendamento?")) {
+                agendamentos.splice(indice, 1);
+                localStorage.setItem('agendamentos', JSON.stringify(agendamentos));
+                exibirAgendamentos();
+            }
+        }
+
+        function abrirModal(modal) {
+            modal.style.display = 'block';
+        }
+
+        function fecharModal(modal) {
+            modal.style.display = 'none';
+        }
+
+        document.getElementById('fecharModalEditar').onclick = () => fecharModal(modalEditar);
+        window.onclick = function(event) {
+            if (event.target === modalEditar) fecharModal(modalEditar);
+        };
+    </script>
+</body>
+</html>

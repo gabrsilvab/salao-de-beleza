@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login | Salão da Leila</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            background-color: #fde0ff;
+            font-family: 'Poppins', Arial, Helvetica, sans-serif;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+        }
+
+        .login-container {
+            background-color: white;
+            padding: 40px;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            width: 300px;
+        }
+
+        .login-container input {
+            width: 100%;
+            padding: 10px;
+            margin-bottom: 20px;
+            border-radius: 5px;
+            border: 1px solid #ccc;
+        }
+
+        .login-container button {
+            width: 100%;
+            padding: 10px;
+            background-color: #440e6e;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            font-size: 16px;
+            cursor: pointer;
+        }
+        .MenssagemErro {
+            color: red;
+            text-align: center;
+            margin-top: 10px;
+        }
+
+        .signup-link {
+            display: block;
+            text-align: center;
+            margin-top: 10px;
+            color: #440e6e;
+            text-decoration: none;
+        }
+
+    </style>
+</head>
+<body>
+
+    <div class="login-container">
+        <h2>Login</h2>
+        <input type="email" id="email" placeholder="Email" required>
+        <input type="password" id="senha" placeholder="Senha" required>
+        <button id="loginBtn">Entrar</button>
+        <div class="MenssagemErro" id="MenssagemErro"></div>
+        <a href="criar.html" class="signup-link">Não tem conta? Cadastre-se</a>
+    </div>
+
+    <script>
+        const loginBtn = document.getElementById('loginBtn');
+        const emailInput = document.getElementById('email');
+        const senhaInput = document.getElementById('senha');
+        const MenssagemErro = document.getElementById('MenssagemErro');
+
+        loginBtn.addEventListener('click', function() {
+            const email = emailInput.value.trim();
+            const senha = senhaInput.value.trim();
+
+            // Login do admin
+            if (email === "adm@leila.com" && senha === "123456") {
+                localStorage.setItem('usuarioLogado', JSON.stringify({ tipo: 'admin' }));
+                window.location.href = "home-adm.html"; // Página do admin
+                return;
+            }
+
+            if (email && senha) {
+                // Verificar usuários no LocalStorage
+                const usuarios = JSON.parse(localStorage.getItem('usuarios')) || [];
+                const usuarioValido = usuarios.find(usuario => usuario.email === email && usuario.senha === senha);
+
+                if (usuarioValido) {
+                    // Salva o usuário logado no LocalStorage
+                    localStorage.setItem('usuarioLogado', JSON.stringify(usuarioValido));
+                    window.location.href = "home.html"; // Página do usuário
+                } else {
+                    MenssagemErro.textContent = "Email ou senha inválidos.";
+                }
+            } else {
+                MenssagemErro.textContent = "Por favor, preencha todos os campos.";
+            }
+        });
+    </script>
+
+</body>
+</html>
