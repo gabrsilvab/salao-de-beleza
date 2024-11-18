@@ -10,7 +10,7 @@
 
 obs: para acessar a Conta ADM, entre com email: adm@leila.com Senha: 123456
 
-obs: para facilitar a avaliação e devido ao curto prazo de tempo, foi feito sem framework, e sem Banco de dados itegrados a alguma API
+obs: para facilitar a avaliação e devido ao curto prazo de tempo, foi feito sem framework, e sem Banco de dados itegrado a  API
 
 ## Tecnologias Utilizadas
 - **HTML/CSS**: Linguagens de marcação ultilizadas
