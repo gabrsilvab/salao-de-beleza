@@ -6,7 +6,7 @@
 ## Funcionalidades e observações
 - **Cadastro de Usuários**: Permite que novos usuários se cadastrem e entrem com LocalStorage. 
 - **Criar Agendamentos**: Permite que os usuários criem seus agendamentos e exclua e edite até o prazo estipulado.
--  **Conta Admisntradora**: Permite que o Admin verifique todos os agendamentos e possa fazer alterações nelas.
+-  **Conta Administradora**: Permite que o Admin verifique todos os agendamentos e possa fazer alterações nelas.
 
 obs: para acessar a Conta ADM, entre com email: adm@leila.com Senha: 123456
 
