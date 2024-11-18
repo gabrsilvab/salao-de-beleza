@@ -16,3 +16,8 @@ obs: para facilitar a avaliação e devido ao curto prazo de tempo, foi feito se
 - **HTML/CSS**: Linguagens de marcação ultilizadas
 - **JavaScript**: Linguagem de programação.
 - **LocalStorage**: O Armazenamento de contas e etc... é salvo em LocalStorage.
+
+## Instalação
+
+Clone este repositório:
+git clone https://github.com/gabrsilvab/salao-de-beleza.git
